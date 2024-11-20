@@ -17,7 +17,7 @@ from models.RewardPixart import RewardPixartPipeline, freeze_params
 from models.RewardStableDiffusion import RewardStableDiffusion
 from models.RewardStableDiffusionXL import RewardStableDiffusionXL
 from models.RewardFlux import RewardFluxPipeline
-
+from models.RewardPyramidFlow import RewardPyramidDiTForVideoGeneration
 
 def get_model(
     model_name: str,
@@ -74,7 +74,6 @@ def get_model(
             subfolder="scheduler",
             cache_dir=cache_dir,
         )
-
         # speed-up T5
         pipe.text_encoder.to_bettertransformer()
         pipe.transformer.eval()
@@ -118,6 +117,16 @@ def get_model(
             cache_dir=cache_dir,
         )
         pipe.to(device, dtype)
+    elif model_name == "PyramidFlow":
+        pipe = RewardPyramidDiTForVideoGeneration(
+            "/scratch/aseth7/dag/Pyramid-Flow/models",
+            "bf16",
+            model_name="pyramid_flux",
+            model_variant="diffusion_transformer_768p",
+        )
+        pipe.vae.to(device)
+        pipe.dit.to(device)
+        pipe.text_encoder.to(device)
     else:
         raise ValueError(f"Unknown model name: {model_name}")
     if enable_sequential_cpu_offload:
